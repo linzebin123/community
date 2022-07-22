@@ -3,6 +3,8 @@ package com.nowcoder.community;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.nowcoder.community.Service.UserService;
 import com.nowcoder.community.entity.User;
+import com.nowcoder.community.mapper.UserMapper;
+import com.nowcoder.community.utils.MailClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.BeansException;
@@ -22,9 +24,14 @@ public class CommunityApplicationTests implements ApplicationContextAware {
 	private ApplicationContext applicationContext;
 	@Autowired
 	private UserService userService;
+	@Autowired
+	private UserMapper userMapper;
+	@Autowired
+	private MailClient mailClient;
 	@Test
-	public void selectTest() {
-		userService.save(new User());
+	public void insertTest() {
+
+
 	}
 
 	@Override
