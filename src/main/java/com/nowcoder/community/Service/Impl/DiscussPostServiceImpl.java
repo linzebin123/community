@@ -8,8 +8,10 @@ import com.nowcoder.community.Service.UserService;
 import com.nowcoder.community.entity.DiscussPost;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.mapper.DiscussPostMapper;
+import com.nowcoder.community.utils.SensitiveFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +23,12 @@ public class DiscussPostServiceImpl extends ServiceImpl<DiscussPostMapper, Discu
     @Autowired
     private DiscussPostService discussPostService;
     @Autowired
+    private DiscussPostMapper discussPostMapper;
+
+    @Autowired
     private UserService userService;
+    @Autowired
+    private SensitiveFilter sensitiveFilter;
 
     @Override
     public List<Map<String, Object>> getDiscussPostWithUser(int userId,Page page) {
@@ -46,5 +53,29 @@ public class DiscussPostServiceImpl extends ServiceImpl<DiscussPostMapper, Discu
 
 
         return list;
+    }
+
+    @Override
+    public int addDiscussPost(DiscussPost discussPost) {
+
+        if (discussPost==null){
+            throw new IllegalArgumentException("参数不能为空");
+        }
+        //转义HTML标签，防止用户输入的内容改变页面结构
+        discussPost.setTitle(HtmlUtils.htmlEscape(discussPost.getTitle()));
+        discussPost.setContent(HtmlUtils.htmlEscape(discussPost.getContent()));
+        //过滤敏感词汇
+
+        discussPost.setTitle(sensitiveFilter.filter(discussPost.getTitle()));
+        discussPost.setContent(sensitiveFilter.filter(discussPost.getContent()));
+        //存入数据库
+        return discussPostMapper.insert(discussPost);
+    }
+
+    @Override
+    public DiscussPost selectDiscussPostById(int id) {
+
+        DiscussPost discussPost = discussPostMapper.selectById(id);
+        return discussPost;
     }
 }

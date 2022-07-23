@@ -5,6 +5,7 @@ import com.nowcoder.community.Service.UserService;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.mapper.UserMapper;
 import com.nowcoder.community.utils.MailClient;
+import com.nowcoder.community.utils.SensitiveFilter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.BeansException;
@@ -28,9 +29,13 @@ public class CommunityApplicationTests implements ApplicationContextAware {
 	private UserMapper userMapper;
 	@Autowired
 	private MailClient mailClient;
-	@Test
-	public void insertTest() {
+	@Autowired
+	private SensitiveFilter sensitiveFilter;
 
+	@Test
+	public void sensitiveTest() {
+		String s = sensitiveFilter.filter("可以赌%%博%%嫖%%娼");
+		System.out.println(s);
 
 	}
 

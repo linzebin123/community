@@ -14,4 +14,18 @@ public interface DiscussPostService extends IService<DiscussPost> {
      * @return
      */
     public List<Map<String,Object>> getDiscussPostWithUser(int userId, Page page);
+
+    /**
+     * 发布帖子
+     * @param discussPost
+     * @return
+     */
+    public int addDiscussPost(DiscussPost discussPost);
+
+    /**
+     * 根据id查询帖子
+     * @param id
+     * @return
+     */
+    public DiscussPost selectDiscussPostById(int id);
 }
