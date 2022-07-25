@@ -1,7 +1,9 @@
 package com.nowcoder.community;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.nowcoder.community.Service.MessageService;
 import com.nowcoder.community.Service.UserService;
+import com.nowcoder.community.entity.Message;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.mapper.UserMapper;
 import com.nowcoder.community.utils.MailClient;
@@ -31,6 +33,8 @@ public class CommunityApplicationTests implements ApplicationContextAware {
 	private MailClient mailClient;
 	@Autowired
 	private SensitiveFilter sensitiveFilter;
+	@Autowired
+	private MessageService messageService;
 
 	@Test
 	public void sensitiveTest() {
