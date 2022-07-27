@@ -5,18 +5,21 @@ import com.nowcoder.community.Service.MessageService;
 import com.nowcoder.community.Service.UserService;
 import com.nowcoder.community.entity.Message;
 import com.nowcoder.community.entity.User;
+import com.nowcoder.community.utils.CommunityUtil;
 import com.nowcoder.community.utils.HostHolder;
+import com.nowcoder.community.utils.SensitiveFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.util.HtmlUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 public class MessageController {
@@ -26,6 +29,9 @@ public class MessageController {
     private HostHolder hostHolder;
     @Autowired
     private UserService userService;
+    @Autowired
+    private SensitiveFilter sensitiveFilter;
+
     //私信列表
     @GetMapping("/letter/list")
     public String getLetterList(Model model, Page page){
@@ -74,8 +80,45 @@ public class MessageController {
         //查询发送私信的用户
         User target = getLetterTarget(conversationId);
         model.addAttribute("target",target);
+        //读取未读的消息
+        messageService.readMessage(letterList,hostHolder.getUser().getId());
+
         return "/site/letter-detail";
     }
+    @PostMapping("/letter/send")
+    @ResponseBody
+    public String sendLetter(String toName,String content){
+        User target = userService.findByName(toName);
+        if (target==null){
+
+            return CommunityUtil.getJsonString(1,"目标用户不存在");
+
+        }
+        if (hostHolder.getUser().getId()==target.getId()){
+            return CommunityUtil.getJsonString(1,"私信目标不能为自己");
+        }
+        if (StringUtils.isBlank(content)){
+            return CommunityUtil.getJsonString(1,"消息内容不能为空");
+        }
+        Message message=new Message();
+        //对发送的私信内容进行处理
+        content= HtmlUtils.htmlEscape(content);
+        //过滤敏感词
+        content=sensitiveFilter.filter(content);
+        message.setContent(content);
+        message.setFromId(hostHolder.getUser().getId());
+        message.setToId(target.getId());
+        //设置会话id（要求用户id从小到大拼接 如：111_222）
+        if (message.getFromId()>message.getToId()){
+            message.setConversationId(message.getToId()+"_"+message.getFromId());
+        }else {
+            message.setConversationId(message.getFromId()+"_"+message.getToId());
+        }
+        message.setCreateTime(new Date());
+        messageService.save(message);
+        return CommunityUtil.getJsonString(200,"发送消息成功");
+    }
+
     private User getLetterTarget(String conversationId){
         String[] ids = conversationId.split("_");
         int id1=Integer.parseInt(ids[0]);

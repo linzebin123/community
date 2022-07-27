@@ -3,7 +3,9 @@ package com.nowcoder.community.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nowcoder.community.Service.CommentService;
 import com.nowcoder.community.Service.DiscussPostService;
+import com.nowcoder.community.Service.LikeService;
 import com.nowcoder.community.Service.UserService;
+import com.nowcoder.community.annotation.LoginRequired;
 import com.nowcoder.community.common.CommunityConstant;
 import com.nowcoder.community.entity.Comment;
 import com.nowcoder.community.entity.DiscussPost;
@@ -30,6 +32,8 @@ public class DiscussPostController {
 
     @Autowired
     private HostHolder hostHolder;
+    @Autowired
+    private LikeService likeService;
 
 
     @PostMapping("/add")
@@ -63,6 +67,18 @@ public class DiscussPostController {
         User user = userService.getById(userId);
         model.addAttribute("user",user);
 
+        //查询帖子点赞数量
+        long likeCount = likeService.findEntityLikeCount(CommunityConstant.ENTITY_TYPE_POST, id);
+        model.addAttribute("likeCount",likeCount);
+        //查询当前用户对帖子的点赞状态
+        User u = hostHolder.getUser();
+        if (u==null){
+            //如果当前用户没登陆默认没点过赞
+            model.addAttribute("likeStatus",0);
+        }else {
+            int likeStatus = likeService.findEntityLikeStatus(u.getId(), CommunityConstant.ENTITY_TYPE_POST, id);
+            model.addAttribute("likeStatus",likeStatus);
+        }
         page.setSize(5);
         //查询帖子评论列表
         List<Comment> commentList = commentService.findCommentById(id, page);
@@ -75,6 +91,16 @@ public class DiscussPostController {
                 commentVo.put("comment",comment);
                 //评论用户的信息
                 commentVo.put("user",userService.getById(comment.getUserId()));
+                //评论点赞信息
+                likeCount = likeService.findEntityLikeCount(CommunityConstant.ENTITY_TYPE_COMMENT, comment.getId());
+                commentVo.put("likeCount",likeCount);
+                if (u==null){
+                    //如果当前用户没登陆默认没点过赞
+                    commentVo.put("likeStatus",0);
+                }else {
+                    int likeStatus = likeService.findEntityLikeStatus(u.getId(), CommunityConstant.ENTITY_TYPE_COMMENT, comment.getId());
+                    commentVo.put("likeStatus",likeStatus);
+                }
 
                 //评论下面还有回复列表
                 List<Comment> replyList=commentService.findReplyById(comment.getId());
@@ -90,6 +116,16 @@ public class DiscussPostController {
                         //回复目标
                         User target=reply.getTargetId()==0 ? null:userService.getById(reply.getTargetId());
                         replyVo.put("target",target);
+                        //查询点赞信息
+                        likeCount = likeService.findEntityLikeCount(CommunityConstant.ENTITY_TYPE_COMMENT, reply.getId());
+                        replyVo.put("likeCount",likeCount);
+                        if (u==null){
+                            //如果当前用户没登陆默认没点过赞
+                            replyVo.put("likeStatus",0);
+                        }else {
+                            int likeStatus = likeService.findEntityLikeStatus(u.getId(), CommunityConstant.ENTITY_TYPE_COMMENT, reply.getId());
+                            replyVo.put("likeStatus",likeStatus);
+                        }
                         replyVoList.add(replyVo);
                     }
 

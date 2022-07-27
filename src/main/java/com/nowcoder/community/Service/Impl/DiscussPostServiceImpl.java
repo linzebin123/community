@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.nowcoder.community.Service.DiscussPostService;
+import com.nowcoder.community.Service.LikeService;
 import com.nowcoder.community.Service.UserService;
+import com.nowcoder.community.common.CommunityConstant;
 import com.nowcoder.community.entity.DiscussPost;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.mapper.DiscussPostMapper;
@@ -29,6 +31,8 @@ public class DiscussPostServiceImpl extends ServiceImpl<DiscussPostMapper, Discu
     private UserService userService;
     @Autowired
     private SensitiveFilter sensitiveFilter;
+    @Autowired
+    private LikeService likeService;
 
     @Override
     public List<Map<String, Object>> getDiscussPostWithUser(int userId,Page page) {
@@ -47,6 +51,8 @@ public class DiscussPostServiceImpl extends ServiceImpl<DiscussPostMapper, Discu
                 User user = userService.getById(discussPost.getUserId());
                 map.put("post",discussPost);
                 map.put("user",user);
+                long likeCount = likeService.findEntityLikeCount(CommunityConstant.ENTITY_TYPE_POST, discussPost.getId());
+                map.put("likeCount",likeCount);
                 list.add(map);
             }
         }

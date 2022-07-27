@@ -1,9 +1,11 @@
 package com.nowcoder.community.interceptor;
 
 import com.nowcoder.community.annotation.LoginRequired;
+import com.nowcoder.community.utils.CommunityUtil;
 import com.nowcoder.community.utils.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -22,10 +24,15 @@ public class LoginRequiredInterceptor implements HandlerInterceptor {
             HandlerMethod handlerMethod= (HandlerMethod) handler;
             Method method = handlerMethod.getMethod();
             LoginRequired loginRequired = method.getAnnotation(LoginRequired.class);
-            if (loginRequired!=null&&hostHolder.getUser()==null){
+            ResponseBody responseBody = method.getAnnotation(ResponseBody.class);
+            if (responseBody==null && loginRequired!=null && hostHolder.getUser()==null){
                 response.sendRedirect(request.getContextPath()+"/login");
                 return false;
 
+            }
+
+            if (responseBody!=null && loginRequired!=null && hostHolder.getUser()==null){
+                throw new RuntimeException("请先登陆");
             }
         }
 

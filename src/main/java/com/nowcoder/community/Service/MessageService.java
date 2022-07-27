@@ -12,7 +12,7 @@ public interface MessageService extends IService<Message> {
     public List<Message> selectConversations(int userId, Page page);
 
     //查询某个会话的私息数量
-    public int selectConversationCount(String conversationId);
+//    public int selectConversationCount(String conversationId);
 
     //查询某个会话的私信列表
     public List<Message> selectLetters(String conversationId,Page page);
@@ -22,6 +22,9 @@ public interface MessageService extends IService<Message> {
 
     //查询未读私信数量
     public int selectLetterUnreadCount(int userId,String conversationId);
+
+    //读消息
+    public void readMessage(List<Message> messageList,int userId);
 
 
 

@@ -167,7 +167,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         loginTicketMapper.updateById(loginTicket);
     }
 
+    @Override
+    public User findByName(String username) {
 
+        LambdaQueryWrapper<User> queryWrapper=new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getUsername,username);
+        User user = userMapper.selectOne(queryWrapper);
+        return user;
+    }
 
 
 }

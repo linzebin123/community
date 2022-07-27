@@ -37,5 +37,10 @@ public interface UserService extends IService<User> {
      */
     public void logout(String ticket);
 
-
+    /**
+     * 根据账号查找用户
+     * @param username
+     * @return
+     */
+    public User findByName(String username);
 }

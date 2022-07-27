@@ -11,6 +11,7 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -35,17 +36,17 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         return conversationList;
     }
 
-    @Override
-    public int selectConversationCount(String conversationId) {
-
-        LambdaQueryWrapper<Message> queryWrapper=new LambdaQueryWrapper<>();
-        queryWrapper.eq(Message::getConversationId,conversationId);
-        queryWrapper.ne(Message::getFromId,1);
-        queryWrapper.ne(Message::getStatus,2);
-        queryWrapper.eq(Message::getConversationId,conversationId);
-        return messageMapper.selectCount(queryWrapper);
-
-    }
+//    @Override
+//    public int selectConversationCount(String conversationId) {
+//
+//        LambdaQueryWrapper<Message> queryWrapper=new LambdaQueryWrapper<>();
+//        queryWrapper.eq(Message::getConversationId,conversationId);
+//        queryWrapper.ne(Message::getFromId,1);
+//        queryWrapper.ne(Message::getStatus,2);
+//        queryWrapper.eq(Message::getConversationId,conversationId);
+//        return messageMapper.selectCount(queryWrapper);
+//
+//    }
 
     @Override
     public List<Message> selectLetters(String conversationId,Page page) {
@@ -77,6 +78,20 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     public int selectLetterUnreadCount(int userId, String conversationId) {
 
         return messageMapper.selectLetterUnreadCount(userId,conversationId);
+    }
+
+    @Override
+    public void readMessage(List<Message> messageList,int userId) {
+        List<Message> newMessageList=new ArrayList<>();
+
+        for(Message message:messageList){
+            //提取出当前用户是接收方并且是未读消息
+            if (message.getToId()==userId && message.getStatus()==0){
+                message.setStatus(1);
+                newMessageList.add(message);
+            }
+        }
+        this.updateBatchById(newMessageList);
     }
 
 

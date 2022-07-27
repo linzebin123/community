@@ -24,14 +24,14 @@
 
 <!--    //查询当前用户的会话数量-->
 <!--    public int selectConversationCount(int userId);-->
-    <select id="selectConversationCount" resultType="java.lang.Integer">
-        select count(m.maxid) from (
-            select max(id) as maxid from message
-            where status!=2 and from_id!=1
-            and (from_id=#{userId} or to_id=#{userId})
-            group by conversation_id
-        ) as m
-    </select>
+<!--    <select id="selectConversationCount" resultType="java.lang.Integer">-->
+<!--        select count(m.maxid) from (-->
+<!--            select max(id) as maxid from message-->
+<!--            where status!=2 and from_id!=1-->
+<!--            and (from_id=#{userId} or to_id=#{userId})-->
+<!--            group by conversation_id-->
+<!--        ) as m-->
+<!--    </select>-->
 <!--    //查询未读私信数量-->
 <!--    public int selectLetterUnreadCount(int userId,String conversationId);-->
     <select id="selectLetterUnreadCount" resultType="java.lang.Integer">
