@@ -17,6 +17,7 @@ public class HomeController {
     private DiscussPostService discussPostService;
     @GetMapping("/index")
     public String getIndexPage(Model model, Page page){
+        page.setSize(10);
         List<Map<String, Object>> mapList = discussPostService.getDiscussPostWithUser(0,page);
         model.addAttribute("discussPosts",mapList);
         page.setRecords(mapList);

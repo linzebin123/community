@@ -42,7 +42,7 @@ public class DiscussPostServiceImpl extends ServiceImpl<DiscussPostMapper, Discu
         queryWrapper.eq(userId!=0,DiscussPost::getUserId,userId);
         queryWrapper.orderByDesc(DiscussPost::getType);
         queryWrapper.orderByDesc(DiscussPost::getCreateTime);
-        queryWrapper.last(" limit "+(page.getCurrent()-1)*10+",10");
+        queryWrapper.last(" limit "+(page.getCurrent()-1)*page.getSize()+","+page.getSize());
         List<DiscussPost> discussPostList = discussPostService.list(queryWrapper);
         List<Map<String,Object>> list=new ArrayList<>();
         if (discussPostList!=null){
@@ -83,5 +83,14 @@ public class DiscussPostServiceImpl extends ServiceImpl<DiscussPostMapper, Discu
 
         DiscussPost discussPost = discussPostMapper.selectById(id);
         return discussPost;
+    }
+
+    @Override
+    public int findCountByUserId(int userId) {
+        LambdaQueryWrapper<DiscussPost> queryWrapper=new LambdaQueryWrapper<>();
+        queryWrapper.eq(DiscussPost::getUserId,userId);
+        queryWrapper.ne(DiscussPost::getStatus,2);
+        int count = discussPostMapper.selectCount(queryWrapper);
+        return count;
     }
 }

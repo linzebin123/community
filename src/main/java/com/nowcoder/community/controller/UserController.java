@@ -1,10 +1,10 @@
 package com.nowcoder.community.controller;
 
-import com.nowcoder.community.Service.FollowService;
-import com.nowcoder.community.Service.LikeService;
-import com.nowcoder.community.Service.UserService;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.nowcoder.community.Service.*;
 import com.nowcoder.community.annotation.LoginRequired;
 import com.nowcoder.community.common.CommunityConstant;
+import com.nowcoder.community.entity.Comment;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.utils.CommunityUtil;
 import com.nowcoder.community.utils.HostHolder;
@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/user")
@@ -48,6 +50,10 @@ public class UserController {
     private LikeService likeService;
     @Autowired
     private FollowService followService;
+    @Autowired
+    private DiscussPostService discussPostService;
+    @Autowired
+    private CommentService commentService;
 
     @LoginRequired
     @GetMapping("/setting")
@@ -155,4 +161,31 @@ public class UserController {
         model.addAttribute("hasFollowed",hasFollowed);
         return "/site/profile";
     }
+
+    @GetMapping("/profile/{userId}/mypost")
+    public String getMyPost(@PathVariable("userId") int userId, Page page,Model model){
+        page.setSize(5);
+        List<Map<String, Object>> mapList = discussPostService.getDiscussPostWithUser(userId, page);
+        User user = userService.getById(userId);
+        model.addAttribute("user",user);
+        page.setTotal(discussPostService.findCountByUserId(userId));
+        model.addAttribute("postList",mapList);
+
+
+        return "/site/my-post";
+
+    }
+
+    @GetMapping("/profile/{userId}/myreply")
+    public String getMyReply(@PathVariable("userId") int userId,Page page,Model model){
+        page.setSize(10);
+        List<Map<String,Object>> commentVoList = commentService.findCommentByUserId(userId, page);
+        model.addAttribute("userId",userId);
+        model.addAttribute("comments",commentVoList);
+
+        return "/site/my-reply";
+
+    }
+
+
 }

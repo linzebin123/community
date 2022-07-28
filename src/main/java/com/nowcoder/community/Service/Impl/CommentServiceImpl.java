@@ -16,7 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> implements CommentService {
@@ -95,6 +98,31 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         return rows;
 
 
+
+    }
+
+    @Override
+    public List<Map<String,Object>> findCommentByUserId(int userId, Page page) {
+        LambdaQueryWrapper<Comment> queryWrapper=new LambdaQueryWrapper<>();
+        queryWrapper.eq(Comment::getStatus,0);
+        queryWrapper.eq(Comment::getUserId,userId);
+        //回复的实体类型为1代表回复的是帖子
+        queryWrapper.eq(Comment::getEntityType,CommunityConstant.ENTITY_TYPE_POST);
+        queryWrapper.orderByDesc(Comment::getCreateTime);
+        commentMapper.selectPage(page,queryWrapper);
+        List<Map<String,Object>> commentVoList=new ArrayList<>();
+        List<Comment> commentList=page.getRecords();
+        if (commentList!=null){
+            for(Comment comment:commentList){
+                Map<String,Object> commentVo=new HashMap<>();
+                commentVo.put("comment",comment);
+                DiscussPost post = discussPostService.getById(comment.getEntityId());
+                commentVo.put("post",post);
+                commentVoList.add(commentVo);
+            }
+        }
+
+        return commentVoList;
 
     }
 }

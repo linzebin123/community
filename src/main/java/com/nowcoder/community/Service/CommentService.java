@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.nowcoder.community.entity.Comment;
 
 import java.util.List;
+import java.util.Map;
 
 public interface CommentService extends IService<Comment> {
     /**
@@ -38,4 +39,11 @@ public interface CommentService extends IService<Comment> {
      * @return
      */
     public int addComment(Comment comment);
+
+    /**
+     * 根据用户id查找评论列表
+     * @param userId
+     * @return
+     */
+    public List<Map<String,Object>> findCommentByUserId(int userId, Page page);
 }

@@ -28,4 +28,11 @@ public interface DiscussPostService extends IService<DiscussPost> {
      * @return
      */
     public DiscussPost selectDiscussPostById(int id);
+
+    /**
+     * 根据用户id查询帖子数量
+     * @param userId
+     * @return
+     */
+    public int findCountByUserId(int userId);
 }
