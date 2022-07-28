@@ -10,24 +10,30 @@ import com.nowcoder.community.mapper.LoginTicketMapper;
 import com.nowcoder.community.mapper.UserMapper;
 import com.nowcoder.community.utils.CommunityUtil;
 import com.nowcoder.community.utils.MailClient;
+import com.nowcoder.community.utils.RedisUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
+//    @Autowired
+//    private LoginTicketMapper loginTicketMapper;
     @Autowired
-    private LoginTicketMapper loginTicketMapper;
+    private RedisTemplate redisTemplate;
     @Autowired
     private UserMapper userMapper;
     @Autowired
@@ -106,6 +112,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }else if(code.equals(user.getActivationCode())){
             user.setStatus(1);
             userMapper.updateById(user);
+            clearCache(userId);
             return CommunityConstant.ACTIVATION_SUCCESS;
         }else {
             return CommunityConstant.ACTIVATION_FAIL;
@@ -149,7 +156,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         loginTicket.setExpired(new Date(System.currentTimeMillis()+expiredSeconds*1000L));
         loginTicket.setStatus(0);
         loginTicket.setTicket(CommunityUtil.generateUUID());
-        loginTicketMapper.insert(loginTicket);
+        //存入redis
+        String ticketKey = RedisUtil.getTicketKey(loginTicket.getTicket());
+        redisTemplate.opsForValue().set(ticketKey,loginTicket);
 
         map.put("ticket",loginTicket.getTicket());
         return map;
@@ -159,12 +168,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public void logout(String ticket) {
-        LambdaQueryWrapper<LoginTicket> queryWrapper=new LambdaQueryWrapper<>();
-        queryWrapper.eq(LoginTicket::getTicket,ticket);
-        LoginTicket loginTicket = loginTicketMapper.selectOne(queryWrapper);
-        //将状态码改为1为无效
+//        LambdaQueryWrapper<LoginTicket> queryWrapper=new LambdaQueryWrapper<>();
+//        queryWrapper.eq(LoginTicket::getTicket,ticket);
+//        LoginTicket loginTicket = loginTicketMapper.selectOne(queryWrapper);
+//        //将状态码改为1为无效
+//        loginTicket.setStatus(1);
+//        loginTicketMapper.updateById(loginTicket);
+        String ticketKey = RedisUtil.getTicketKey(ticket);
+        LoginTicket loginTicket = (LoginTicket) redisTemplate.opsForValue().get(ticketKey);
+        //将状态码改为1未无效
         loginTicket.setStatus(1);
-        loginTicketMapper.updateById(loginTicket);
+        //再存回redis
+        redisTemplate.opsForValue().set(ticketKey,loginTicket);
     }
 
     @Override
@@ -176,5 +191,34 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return user;
     }
 
+    @Override
+    public User getCache(int userId) {
 
+        String userKey = RedisUtil.getUserKey(userId);
+        return (User) redisTemplate.opsForValue().get(userKey);
+    }
+
+    @Override
+    public User initCache(int userId) {
+        User user = userMapper.selectById(userId);
+        String userKey = RedisUtil.getUserKey(userId);
+        redisTemplate.opsForValue().set(userKey,user,3600, TimeUnit.SECONDS);
+        return user;
+    }
+
+    @Override
+    public void clearCache(int userId) {
+        String userKey = RedisUtil.getUserKey(userId);
+        redisTemplate.delete(userKey);
+    }
+
+    @Override
+    public User getById(Serializable id) {
+        User user=getCache((Integer) id);
+        if (user==null){
+            user=initCache((Integer) id);
+
+        }
+        return user;
+    }
 }

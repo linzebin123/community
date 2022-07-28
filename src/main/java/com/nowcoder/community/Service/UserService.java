@@ -43,4 +43,24 @@ public interface UserService extends IService<User> {
      * @return
      */
     public User findByName(String username);
+
+    /**
+     * 优先从redis缓存中取值
+     * @param userId
+     * @return
+     */
+    public User getCache(int userId);
+
+    /**
+     * 如果从缓存中取不到则初始化缓存并返回
+     * @param userId
+     * @return
+     */
+    public User initCache(int userId);
+
+    /**
+     * 当用户数据更新时清理缓存
+     * @param userId
+     */
+    public void clearCache(int userId);
 }

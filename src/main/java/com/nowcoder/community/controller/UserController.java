@@ -91,6 +91,7 @@ public class UserController {
         String headerUrl=domain+contextPath+"/user/header/"+filename;
         user.setHeaderUrl(headerUrl);
         userService.updateById(user);
+        userService.clearCache(user.getId());
         return "redirect:/index";
     }
 
@@ -132,6 +133,7 @@ public class UserController {
         }
         password=CommunityUtil.md5(newPassword+user.getSalt());
         user.setPassword(password);
+        userService.clearCache(user.getId());
         return "redirect:/logout";
     }
 
