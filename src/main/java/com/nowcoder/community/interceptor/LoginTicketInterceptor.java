@@ -2,6 +2,7 @@ package com.nowcoder.community.interceptor;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.nowcoder.community.Service.LoginTicketService;
+import com.nowcoder.community.Service.MessageService;
 import com.nowcoder.community.Service.UserService;
 import com.nowcoder.community.entity.LoginTicket;
 import com.nowcoder.community.entity.User;
@@ -23,6 +24,8 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
     @Autowired
     private UserService userService;
     @Autowired
+    private MessageService messageService;
+    @Autowired
     private HostHolder hostHolder;
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -43,8 +46,14 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
         User user = hostHolder.getUser();
-        if (modelAndView!=null){
+        if (modelAndView!=null && user!=null){
             modelAndView.addObject("loginUser",user);
+
+            int noticeUnreadCount = messageService.selectNoticeUnreadCount(user.getId(), null);
+            int letterUnreadCount = messageService.selectLetterUnreadCount(user.getId(), null);
+            modelAndView.addObject("allUnreadCount",noticeUnreadCount+letterUnreadCount);
+
+
         }
 
     }

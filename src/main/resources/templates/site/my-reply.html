@@ -68,10 +68,10 @@
 							<a class="nav-link" th:href="@{|/user/profile/${userId}|}">个人信息</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" th:href="@{|/user/profile/${userId}/mypost|}">我的帖子</a>
+							<a class="nav-link" th:href="@{|/user/profile/${userId}/mypost|}"><i th:text="${loginUser.id==userId?'我':'他'}">我</i>的帖子</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link active" th:href="@{|/user/profile/${userId}/myreply|}">我的回复</a>
+							<a class="nav-link active" th:href="@{|/user/profile/${userId}/myreply|}"><i th:text="${loginUser.id==userId?'我':'他'}">我</i>的回复</a>
 						</li>
 					</ul>
 					<a th:href="@{|/user/profile/${userId}|}" class="text-muted position-absolute rt-0">返回个人主页&gt;</a>

@@ -94,5 +94,62 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         this.updateBatchById(newMessageList);
     }
 
+    @Override
+    public Message selectLatesNotice(int userId, String topic) {
+
+        LambdaQueryWrapper<Message> queryWrapper=new LambdaQueryWrapper<>();
+
+        queryWrapper.eq(Message::getConversationId,topic);
+        //status为2代表已删除
+        queryWrapper.ne(Message::getStatus,2);
+        queryWrapper.eq(Message::getFromId,1);
+        queryWrapper.eq(Message::getToId,userId);
+
+        queryWrapper.orderByDesc(Message::getId);
+        queryWrapper.last(" limit 1");
+        Message message = messageMapper.selectOne(queryWrapper);
+        return message;
+    }
+
+    @Override
+    public int selectNoticeCount(int userId, String topic) {
+        LambdaQueryWrapper<Message> queryWrapper=new LambdaQueryWrapper<>();
+        queryWrapper.ne(Message::getStatus,2);
+        queryWrapper.eq(Message::getToId,userId);
+        //1代表系统发送的消息
+        queryWrapper.eq(Message::getFromId,1);
+        queryWrapper.eq(Message::getConversationId,topic);
+        int noticeCount = messageMapper.selectCount(queryWrapper);
+        return noticeCount;
+    }
+
+    @Override
+    public int selectNoticeUnreadCount(int userId, String topic) {
+        LambdaQueryWrapper<Message> queryWrapper=new LambdaQueryWrapper<>();
+        //状态0代表未读
+        queryWrapper.eq(Message::getStatus,0);
+        queryWrapper.eq(Message::getToId,userId);
+        queryWrapper.eq(Message::getFromId,1);
+        queryWrapper.eq(topic!=null,Message::getConversationId,topic);
+        int noticeUnreadCount = messageMapper.selectCount(queryWrapper);
+        return noticeUnreadCount;
+
+
+    }
+
+    @Override
+    public List<Message> selectNoticesByTopic(int userId, String topic, Page page) {
+
+        LambdaQueryWrapper<Message> queryWrapper=new LambdaQueryWrapper<>();
+        queryWrapper.eq(Message::getToId,userId);
+        queryWrapper.eq(Message::getConversationId,topic);
+        queryWrapper.eq(Message::getFromId,1);
+        //状态2代表已经被删除
+        queryWrapper.ne(Message::getStatus,2);
+        queryWrapper.orderByDesc(Message::getCreateTime);
+        messageMapper.selectPage(page,queryWrapper);
+        return page.getRecords();
+    }
+
 
 }

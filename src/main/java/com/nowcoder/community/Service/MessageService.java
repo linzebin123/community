@@ -26,6 +26,17 @@ public interface MessageService extends IService<Message> {
     //读消息
     public void readMessage(List<Message> messageList,int userId);
 
+    //查询某个主题下最新通知
+    public Message selectLatesNotice(int userId,String topic);
+
+    //查询某个主题所包含的通知数量
+    public int selectNoticeCount(int userId,String topic);
+
+    //查询某个主题未读通知数量
+    public int selectNoticeUnreadCount(int userId,String topic);
+
+    //查询某个主题下的通知详情
+    public List<Message> selectNoticesByTopic(int userId,String topic,Page page);
 
 
 }
